@@ -15,9 +15,9 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/coinmarketcap"
-	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/entity"
 	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/queries"
 	"github.com/v1adhope/bar-indicators/lib/database"
+	"github.com/v1adhope/bar-indicators/lib/history"
 	"github.com/v1adhope/bar-indicators/lib/httpclient"
 	"github.com/v1adhope/bar-indicators/lib/waybar"
 )
@@ -42,12 +42,12 @@ func Run(ctx context.Context, apiToken, convertId, rawCoinIds string) error {
 		return errors.Join(fetchErr, err)
 	}
 
-	status := entity.StatusSuccess
+	status := history.StatusSuccess
 
 	if fetchErr != nil {
-		status, res = entity.StatusError, fetchErr.Error()
+		status, res = history.StatusError, fetchErr.Error()
 
-		fallback, err := db.GetLatestSuccess(ctx, queries.GetLatestSuccess, convertId, rawCoinIds, entity.StatusSuccess.String())
+		fallback, err := db.GetLatestSuccess(ctx, queries.GetLatestSuccess, convertId, rawCoinIds, history.StatusSuccess.String())
 		if err != nil {
 			recordErr := db.Record(ctx, queries.Record, time.Now().UTC().Format(time.RFC3339), convertId, rawCoinIds, status.String(), res)
 

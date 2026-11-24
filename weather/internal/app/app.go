@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/v1adhope/bar-indicators/lib/database"
+	"github.com/v1adhope/bar-indicators/lib/history"
 	"github.com/v1adhope/bar-indicators/lib/httpclient"
 	"github.com/v1adhope/bar-indicators/lib/waybar"
-	"github.com/v1adhope/bar-indicators/weather/internal/entity"
 	"github.com/v1adhope/bar-indicators/weather/internal/queires"
 	"github.com/v1adhope/bar-indicators/weather/internal/wttr"
 )
@@ -42,12 +42,12 @@ func Run(ctx context.Context, city string) error {
 		return errors.Join(fetchErr, err)
 	}
 
-	status := entity.StatusSuccess
+	status := history.StatusSuccess
 
 	if fetchErr != nil {
-		status, res = entity.StatusError, fetchErr.Error()
+		status, res = history.StatusError, fetchErr.Error()
 
-		fallback, err := db.GetLatestSuccess(ctx, queires.GetLatestSuccess, city, entity.StatusSuccess.String())
+		fallback, err := db.GetLatestSuccess(ctx, queires.GetLatestSuccess, city, history.StatusSuccess.String())
 		if err != nil {
 			recordErr := db.Record(ctx, queires.Record, time.Now().UTC().Format(time.RFC3339), city, status.String(), res)
 
