@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,8 +16,8 @@ import (
 )
 
 // Run fetches and prints cryptocurrency quotes in Waybar JSON format.
-func Run(apiToken, convertId, rawCoinIds string) error {
-	res, err := getCryptocurrency(apiToken, convertId, rawCoinIds)
+func Run(ctx context.Context, apiToken, convertId, rawCoinIds string) error {
+	res, err := getCryptocurrency(ctx, apiToken, convertId, rawCoinIds)
 	if err != nil {
 		return err
 	}
@@ -26,8 +27,8 @@ func Run(apiToken, convertId, rawCoinIds string) error {
 }
 
 // getCryptocurrency returns the Waybar cryptocurrency JSON for the requested coins.
-func getCryptocurrency(apiToken, convertId, rawCoinIds string) (string, error) {
-	req, err := http.NewRequest(http.MethodGet, "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest", nil)
+func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest", nil)
 	if err != nil {
 		return "", fmt.Errorf("request: %w", err)
 	}

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"log"
 	"os"
+	"time"
 
 	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/app"
 )
@@ -12,9 +14,14 @@ const (
 	_envApiToken     = "CRYPTO_CURRENCY_API"
 	_envFavoriteCoin = "CRYPTO_CURRENCY_FV"
 	_envWatchList    = "CRYPTO_CURRENCY_WL"
+
+	_runTimeout = time.Minute
 )
 
 func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), _runTimeout)
+	defer cancel()
+
 	convertId, rawCoinIds := "2781", "1,1027,6636"
 
 	apiToken := os.Getenv(_envApiToken)
@@ -27,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := app.Run(apiToken, convertId, rawCoinIds); err != nil {
+	if err := app.Run(ctx, apiToken, convertId, rawCoinIds); err != nil {
 		log.Fatal(err)
 	}
 }
