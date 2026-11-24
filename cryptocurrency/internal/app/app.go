@@ -3,7 +3,7 @@ package app
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -51,7 +51,7 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 		return "", fmt.Errorf("get: %w", err)
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+	if err := json.UnmarshalRead(resp.Body, &data); err != nil {
 		return "", fmt.Errorf("decode: %w", err)
 	}
 
