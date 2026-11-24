@@ -114,6 +114,7 @@ func getWeather(ctx context.Context, city string) (string, error) {
 	fmt.Fprintln(&buf, "Sunset at "+sunsetTime)
 
 	days, nowHour := 3, time.Now().Hour()
+	hourlyFormat := "At %02d:00 %2s°(%2s°) %s\n"
 	for day := range days {
 		switch day {
 		case 0:
@@ -129,11 +130,7 @@ func getWeather(ctx context.Context, city string) (string, error) {
 			if day == 0 && nowHour > tWindow+2 {
 				continue
 			}
-			if tWindow < 10 {
-				fmt.Fprintf(&buf, "At 0%d:00 %2s°(%2s°) %s\n", tWindow, weather.TempC, weather.FeelsLikeC, checkDescription(weather.WeatherDesc[0].Value))
-			} else {
-				fmt.Fprintf(&buf, "At %d:00 %2s°(%2s°) %s\n", tWindow, weather.TempC, weather.FeelsLikeC, checkDescription(weather.WeatherDesc[0].Value))
-			}
+			fmt.Fprintf(&buf, hourlyFormat, tWindow, weather.TempC, weather.FeelsLikeC, checkDescription(weather.WeatherDesc[0].Value))
 		}
 	}
 
