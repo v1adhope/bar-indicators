@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/v1adhope/bar-indicators/weather/weather"
+	"github.com/v1adhope/bar-indicators/weather/internal/entity"
 	_ "modernc.org/sqlite"
 )
 
@@ -76,7 +76,7 @@ var getLatestSuccess string
 
 func (d *Database) GetLatestSuccess(ctx context.Context, city string) (string, error) {
 	res := ""
-	err := d.QueryRowContext(ctx, getLatestSuccess, city, weather.StatusSuccess).Scan(&res)
+	err := d.QueryRowContext(ctx, getLatestSuccess, city, entity.StatusSuccess).Scan(&res)
 	if err != nil {
 		return "", err
 	}

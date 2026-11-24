@@ -1,9 +1,4 @@
-package weather
-
-const (
-	StatusSuccess = "success"
-	StatusError   = "error"
-)
+package wttr
 
 type Data struct {
 	CurrentCondition []CurrentCondition `json:"current_condition"`
