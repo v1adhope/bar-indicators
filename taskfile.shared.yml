@@ -4,7 +4,7 @@ tasks:
   build:
     desc: Build the {{.BIN_NAME}} indicator binary
     cmds:
-      - go build -o .bin/{{.BIN_NAME}} cmd/main.go && chmod +x .bin/{{.BIN_NAME}}
+      - CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o .bin/{{.BIN_NAME}} cmd/main.go && chmod +x .bin/{{.BIN_NAME}}
 
   preview:
     desc: Build and preview the {{.BIN_NAME}} indicator JSON output
