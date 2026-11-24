@@ -64,9 +64,9 @@ func (d *Database) Init(ctx context.Context) error {
 //go:embed record.sql
 var record string
 
-func (d *Database) Record(ctx context.Context, city, status, res string) error {
+func (d *Database) Record(ctx context.Context, city string, status entity.Status, res string) error {
 	_, err := d.ExecContext(ctx, record,
-		time.Now().UTC().Format(time.RFC3339), city, status, res,
+		time.Now().UTC().Format(time.RFC3339), city, status.String(), res,
 	)
 	return err
 }
@@ -76,7 +76,7 @@ var getLatestSuccess string
 
 func (d *Database) GetLatestSuccess(ctx context.Context, city string) (string, error) {
 	res := ""
-	err := d.QueryRowContext(ctx, getLatestSuccess, city, entity.StatusSuccess).Scan(&res)
+	err := d.QueryRowContext(ctx, getLatestSuccess, city, entity.StatusSuccess.String()).Scan(&res)
 	if err != nil {
 		return "", err
 	}
