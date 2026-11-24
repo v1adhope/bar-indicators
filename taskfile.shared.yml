@@ -1,0 +1,20 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Build the {{.BIN_NAME}} indicator binary
+    cmds:
+      - go build -o .bin/{{.BIN_NAME}} cmd/main.go && chmod +x .bin/{{.BIN_NAME}}
+
+  preview:
+    desc: Build and preview the {{.BIN_NAME}} indicator JSON output
+    cmds:
+      - task: build
+      - .bin/{{.BIN_NAME}} | jq .
+
+  prod:
+    desc: Build and install the {{.BIN_NAME}} indicator into Waybar scripts
+    cmds:
+      - task: build
+      - mkdir -p ~/.config/waybar/scripts/
+      - \cp -f .bin/{{.BIN_NAME}} ~/.config/waybar/scripts

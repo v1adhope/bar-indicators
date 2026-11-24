@@ -3,21 +3,7 @@ version: '3'
 env:
   BIN_NAME: cryptocurrency
 
-tasks:
-  build:
-    desc: Build the cryptocurrency indicator binary
-    cmds:
-      - go build -o .bin/{{.BIN_NAME}} cmd/main.go && chmod +x .bin/{{.BIN_NAME}}
-
-  preview:
-    desc: Build and preview the cryptocurrency indicator JSON output
-    cmds:
-      - task: build
-      - .bin/{{.BIN_NAME}} | jq .
-
-  prod:
-    desc: Build and install the cryptocurrency indicator into Waybar scripts
-    cmds:
-      - task: build
-      - mkdir -p ~/.config/waybar/scripts/
-      - \cp -f .bin/{{.BIN_NAME}} ~/.config/waybar/scripts
+includes:
+  shared:
+    taskfile: ../taskfile.shared.yml
+    flatten: true
