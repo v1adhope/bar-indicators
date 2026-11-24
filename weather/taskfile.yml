@@ -1,0 +1,34 @@
+version: '3'
+
+env:
+  BIN_NAME: weather
+
+tasks:
+  remove-db:
+    desc: Remove the weather history database
+    cmds:
+      - |
+        case "$XDG_STATE_HOME" in
+          /*) state_home="$XDG_STATE_HOME" ;;
+          *) state_home="$HOME/.local/state" ;;
+        esac
+        db="$state_home/waybar-weather-indicator/weather_history.sqlite3"
+        rm -f -- "$db" "$db-wal" "$db-shm" "$db-journal"
+
+  build:
+    desc: Build the weather indicator binary
+    cmds:
+      - go build -o .bin/{{.BIN_NAME}} cmd/main.go && chmod +x .bin/{{.BIN_NAME}}
+
+  preview:
+    desc: Build and preview the weather indicator JSON output
+    cmds:
+      - task: build
+      - .bin/{{.BIN_NAME}} | jq .
+
+  prod:
+    desc: Build and install the weather indicator into Waybar scripts
+    cmds:
+      - task: build
+      - mkdir -p ~/.config/waybar/scripts/
+      - \cp -f .bin/{{.BIN_NAME}} ~/.config/waybar/scripts
