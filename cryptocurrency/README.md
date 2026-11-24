@@ -1,26 +1,21 @@
 # Waybar cryptocurrency indicator
 
-## Usage
+Cryptocurrency quotes for Waybar, powered by [CoinMarketCap API](https://coinmarketcap.com/api/).
+Shows the first coin in the bar, with the remaining coins and their 24-hour changes
+in the tooltip.
 
-The module uses [CoinMarketCap API](https://coinmarketcap.com/api/)
+## Setup
 
-Each run consumes 1 credit, for a free account 10,000 per month is given.
+Install Go and Task, then run from the `cryptocurrency` directory:
 
-Three environmental variables are required for full work:
-- `CRYPTO_CURRENCY_API` - api token
-- `CRYPTO_CURRENCY_FV` - coin for bar (USD by default)
-- `CRYPTO_CURRENCY_WL` - coins for drop down list (BTC,ETH,DOT by default)
-
-```bash
-# To search for coin IDs, consumes 1 credit `*required curl and jq`
-curl -H "X-CMC_PRO_API_KEY: <your_api>" -H "Accept: application/json" -d "symbol=<ticker_with_a_comma_separating>" -G https://pro-api.coinmarketcap.com/v1/cryptocurrency/map | jq .
+```sh
+task prod
 ```
 
-## Sample
+Add this definition to your Waybar configuration and include `custom/cryptocurrency`
+in your module list. It updates every 30 minutes:
 
-Updated every 30 minutes.
-
-```
+```jsonc
 "custom/cryptocurrency": {
     "max-length": 15,
     "return-type": "json",
@@ -30,14 +25,38 @@ Updated every 30 minutes.
 }
 ```
 
+## Configuration
+
+Set these environment variables in Waybar's environment or prefix the `exec`
+command with them:
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `CRYPTO_CURRENCY_API` | CoinMarketCap API token (required) | None |
+| `CRYPTO_CURRENCY_FV` | Conversion currency ID | `2781` (USD) |
+| `CRYPTO_CURRENCY_WL` | Comma-separated coin IDs, in display order | `1,1027,6636` (BTC, ETH, DOT) |
+
+Use numeric CoinMarketCap IDs rather than ticker symbols. The first coin in
+`CRYPTO_CURRENCY_WL` appears in the bar; the remaining coins appear in the tooltip.
+
+To look up coin IDs by ticker symbol, use curl and jq:
+
+```sh
+curl -G 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/map' \
+    -H 'X-CMC_PRO_API_KEY: <your_api>' \
+    -H 'Accept: application/json' \
+    --data-urlencode 'symbol=BTC,ETH,DOT' | jq .
+```
+
 ## Fallback
 
-If an update fails, the indicator uses the last successful result for the same conversion
-currency and coin list, including its order, keeping the original timestamp.
+Results are saved automatically. If an update fails, the indicator uses the last
+successful result for the same conversion currency and coin list, including its
+order, keeping the original timestamp.
 The tooltip shows `Fallback not used` for fresh results and `Fallback used` for
 saved results. If no matching saved result exists, the command logs an error and
 exits.
 
 ## Preview
 
-![preview](/assets/preview.png)
+![preview](assets/preview.png)
