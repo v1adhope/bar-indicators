@@ -1,6 +1,12 @@
 version: '3'
 
 tasks:
+  lint:
+    desc: Format Go code and run static analysis
+    cmds:
+      - go fmt ./...
+      - go vet ./...
+
   build:
     desc: Build the {{.BIN_NAME}} indicator binary
     cmds:
