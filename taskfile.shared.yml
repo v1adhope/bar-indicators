@@ -18,3 +18,14 @@ tasks:
       - task: build
       - mkdir -p ~/.config/waybar/scripts/
       - \cp -f .bin/{{.BIN_NAME}} ~/.config/waybar/scripts
+
+  remove-db:
+    desc: Remove the {{.BIN_NAME}} history database
+    cmds:
+      - |
+        case "$XDG_STATE_HOME" in
+          /*) state_home="$XDG_STATE_HOME" ;;
+          *) state_home="$HOME/.local/state" ;;
+        esac
+        db="$state_home/bar-indicators/{{.BIN_NAME}}_history.sqlite3"
+        rm -f -- "$db" "$db-wal" "$db-shm" "$db-journal"

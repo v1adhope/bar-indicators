@@ -30,6 +30,14 @@ Updated every 30 minutes.
 }
 ```
 
+## Fallback
+
+If an update fails, the indicator uses the last successful result for the same conversion
+currency and coin list, including its order, keeping the original timestamp.
+The tooltip shows `Fallback not used` for fresh results and `Fallback used` for
+saved results. If no matching saved result exists, the command logs an error and
+exits.
+
 ## Preview
 
 ![preview](/assets/preview.png)

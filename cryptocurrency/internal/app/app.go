@@ -3,7 +3,10 @@ package app
 import (
 	"bytes"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -12,21 +15,54 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/coinmarketcap"
+	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/entity"
+	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/queries"
+	"github.com/v1adhope/bar-indicators/lib/database"
 	"github.com/v1adhope/bar-indicators/lib/httpclient"
 	"github.com/v1adhope/bar-indicators/lib/waybar"
 )
 
 const _pricePlaces = 3
 
-// Run fetches and prints cryptocurrency quotes in Waybar JSON format.
+// Run fetches and prints cryptocurrency quotes, using saved results if the fetch fails.
 func Run(ctx context.Context, apiToken, convertId, rawCoinIds string) error {
-	res, err := getCryptocurrency(ctx, apiToken, convertId, rawCoinIds)
-	if err != nil {
-		return err
+	res, fetchErr := getCryptocurrency(ctx, apiToken, convertId, rawCoinIds)
+	if fetchErr == nil {
+		fmt.Println(res)
 	}
 
-	fmt.Println(res)
-	return nil
+	db, err := database.Open(ctx, "bar-indicators/cryptocurrency_history.sqlite3")
+	if err != nil {
+		return errors.Join(fetchErr, err)
+	}
+
+	defer db.Close()
+
+	if err := db.Init(ctx, queries.Schema); err != nil {
+		return errors.Join(fetchErr, err)
+	}
+
+	status := entity.StatusSuccess
+
+	if fetchErr != nil {
+		status, res = entity.StatusError, fetchErr.Error()
+
+		fallback, err := db.GetLatestSuccess(ctx, queries.GetLatestSuccess, convertId, rawCoinIds, entity.StatusSuccess.String())
+		if err != nil {
+			recordErr := db.Record(ctx, queries.Record, time.Now().UTC().Format(time.RFC3339), convertId, rawCoinIds, status.String(), res)
+
+			if errors.Is(err, sql.ErrNoRows) {
+				return errors.Join(fetchErr, recordErr)
+			}
+
+			return errors.Join(fetchErr, fmt.Errorf("load fallback: %w", err), recordErr)
+		}
+
+		log.Printf("%v; using last successful cryptocurrency result", fetchErr)
+		fmt.Println(strings.Replace(fallback, "Fallback not used", "Fallback used", 1))
+	}
+
+	return db.Record(ctx, queries.Record, time.Now().UTC().Format(time.RFC3339), convertId, rawCoinIds, status.String(), res)
 }
 
 // getCryptocurrency returns the Waybar cryptocurrency JSON for the requested coins.
@@ -90,6 +126,7 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 		return "", fmt.Errorf("parse timestamp: %w", err)
 	}
 	fmt.Fprint(&buf, "\n <b>Timestamp</b>\n "+t.Local().Format(time.DateTime))
+	fmt.Fprint(&buf, "\n Fallback not used")
 
 	module.Tooltip = buf.String()
 	module.Tooltip = strings.Replace(module.Tooltip, "Ticker", "<b>Ticker</b>", 1)
