@@ -2,34 +2,35 @@ package main
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/app"
 )
 
-const (
-	_envApiToken     = "CRYPTO_CURRENCY_API"
-	_envFavoriteCoin = "CRYPTO_CURRENCY_FV"
-	_envWatchList    = "CRYPTO_CURRENCY_WL"
+const _runTimeout = time.Minute
 
-	_runTimeout = time.Minute
+var (
+	validID  = regexp.MustCompile(`^[0-9]+$`)
+	validIDs = regexp.MustCompile(`^[0-9]+(,[0-9]+)*$`)
 )
 
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), _runTimeout)
 	defer cancel()
 
-	convertId, rawCoinIds := "2781", "1,20396"
-	apiToken := os.Getenv(_envApiToken)
+	apiToken := os.Getenv("CRYPTO_CURRENCY_API")
 
-	if err := fillVarByEnvKey(_envFavoriteCoin, &convertId); err != nil {
+	convertId, err := parseEnv("CRYPTO_CURRENCY_FV", "2781", validID)
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := fillVarByEnvKey(_envWatchList, &rawCoinIds); err != nil {
+	rawCoinIds, err := parseEnv("CRYPTO_CURRENCY_WL", "1,20396", validIDs)
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -38,17 +39,14 @@ func main() {
 	}
 }
 
-func fillVarByEnvKey(key string, placeholder *string) error {
-	if env := os.Getenv(key); env != "" {
-		for _, v := range env {
-			if byte(v) == 44 || (byte(v) < 58 && byte(v) > 47) {
-				continue
-			}
-
-			return errors.New("incorrect by key: " + key)
-		}
-		*placeholder = env
+func parseEnv(key, defaultValue string, pattern *regexp.Regexp) (string, error) {
+	env := os.Getenv(key)
+	if env == "" {
+		return defaultValue, nil
+	}
+	if !pattern.MatchString(env) {
+		return "", fmt.Errorf("invalid value %q for %s", env, key)
 	}
 
-	return nil
+	return env, nil
 }
