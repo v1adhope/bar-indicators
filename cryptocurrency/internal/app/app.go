@@ -107,14 +107,22 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 
 	w := tabwriter.NewWriter(&buf, 0, 0, 1, ' ', tabwriter.AlignRight)
 
-	fmt.Fprintf(w, "%-6s\t%s\t%s\t\n", "Ticker", "Price", "24h%")
+	fmt.Fprintf(w, "%-6s\t%s\t%s\t%s\t\n", "Ticker", "Price", "24h", "24h%")
 
 	for _, coinId := range coinIds[1:] {
+		quote := data.Data[coinId].Quote[convertId]
+		priceRatio := decimal.NewFromInt(1).Add(decimal.NewFromFloat(quote.PercentChange24h).Div(decimal.NewFromInt(100)))
+		priceChange := "N/A"
+		if priceRatio.IsPositive() {
+			priceChange = quote.Price.Sub(quote.Price.Div(priceRatio)).StringFixedBank(_pricePlaces)
+		}
+
 		fmt.Fprintf(w,
-			"%-6s\t%s\t%0.2f\t\n",
+			"%-6s\t%s\t%s\t%0.2f\t\n",
 			data.Data[coinId].Symbol,
-			data.Data[coinId].Quote[convertId].Price.StringFixedBank(_pricePlaces),
-			data.Data[coinId].Quote[convertId].PercentChange24h,
+			quote.Price.StringFixedBank(_pricePlaces),
+			priceChange,
+			quote.PercentChange24h,
 		)
 	}
 	if err := w.Flush(); err != nil {
@@ -131,6 +139,7 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 	module.Tooltip = buf.String()
 	module.Tooltip = strings.Replace(module.Tooltip, "Ticker", "<b>Ticker</b>", 1)
 	module.Tooltip = strings.Replace(module.Tooltip, "Price", "<b>Price</b>", 1)
+	module.Tooltip = strings.Replace(module.Tooltip, "24h", "<b>24h</b>", 1)
 	module.Tooltip = strings.Replace(module.Tooltip, "24h%", "<b>24h%</b>", 1)
 
 	res, err := module.Encode()
