@@ -34,7 +34,7 @@ command with them:
 | --- | --- | --- |
 | `CRYPTO_CURRENCY_API` | CoinMarketCap API token (required) | None |
 | `CRYPTO_CURRENCY_FV` | Conversion currency ID | `2781` (USD) |
-| `CRYPTO_CURRENCY_WL` | Comma-separated coin IDs, in display order | `1,1027,6636` (BTC, ETH, DOT) |
+| `CRYPTO_CURRENCY_WL` | Comma-separated coin IDs, in display order | `1,20396` (BTC, KAS) |
 
 Use numeric CoinMarketCap IDs rather than ticker symbols. The first coin in
 `CRYPTO_CURRENCY_WL` appears in the bar; the remaining coins appear in the tooltip.
@@ -45,7 +45,7 @@ To look up coin IDs by ticker symbol, use curl and jq:
 curl -G 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/map' \
     -H 'X-CMC_PRO_API_KEY: <your_api>' \
     -H 'Accept: application/json' \
-    --data-urlencode 'symbol=BTC,ETH,DOT' | jq .
+    --data-urlencode 'symbol=BTC,KAS' | jq .
 ```
 
 ## Fallback

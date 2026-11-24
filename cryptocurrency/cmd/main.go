@@ -22,8 +22,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), _runTimeout)
 	defer cancel()
 
-	convertId, rawCoinIds := "2781", "1,1027,6636"
-
+	convertId, rawCoinIds := "2781", "1,20396"
 	apiToken := os.Getenv(_envApiToken)
 
 	if err := fillVarByEnvKey(_envFavoriteCoin, &convertId); err != nil {
