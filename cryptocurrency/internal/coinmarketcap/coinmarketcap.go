@@ -1,4 +1,4 @@
-package structure
+package coinmarketcap
 
 type Data struct {
 	Status struct {
