@@ -1,5 +1,7 @@
 package coinmarketcap
 
+import "github.com/shopspring/decimal"
+
 type Data struct {
 	Status Status                    `json:"status"`
 	Data   map[string]Cryptocurrency `json:"data"`
@@ -16,6 +18,6 @@ type Cryptocurrency struct {
 }
 
 type Quote struct {
-	Price            float64 `json:"price"`
-	PercentChange24h float64 `json:"percent_change_24h"`
+	Price            decimal.Decimal `json:"price"`
+	PercentChange24h float64         `json:"percent_change_24h"`
 }

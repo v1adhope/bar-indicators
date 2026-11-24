@@ -11,9 +11,12 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/coinmarketcap"
 	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/entity"
 )
+
+const _pricePlaces = 3
 
 // Run fetches and prints cryptocurrency quotes in Waybar JSON format.
 func Run(ctx context.Context, apiToken, convertId, rawCoinIds string) error {
@@ -57,12 +60,18 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 
 	module := entity.Module{}
 	coinIds := strings.Split(rawCoinIds, ",")
+	for _, coinId := range coinIds {
+		if !data.Data[coinId].Quote[convertId].Price.IsPositive() {
+			return "", fmt.Errorf("price unavailable for coin %s in currency %s", coinId, convertId)
+		}
+	}
 
 	coinIdFirst := coinIds[0]
+	price := data.Data[coinIdFirst].Quote[convertId].Price
 	if data.Data[coinIdFirst].IsFiat == 0 {
-		module.Text = fmt.Sprintf("%0.3f", data.Data[coinIdFirst].Quote[convertId].Price)
+		module.Text = price.StringFixedBank(_pricePlaces)
 	} else {
-		module.Text = fmt.Sprintf("%0.3f", 1/data.Data[coinIdFirst].Quote[convertId].Price)
+		module.Text = decimal.NewFromInt(1).Div(price).StringFixedBank(_pricePlaces)
 	}
 
 	buf := bytes.Buffer{}
@@ -75,9 +84,9 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 
 		for _, coinId := range coinIds[1:] {
 			fmt.Fprintf(w,
-				"%-6s\t%0.3f\t%0.2f\t\n",
+				"%-6s\t%s\t%0.2f\t\n",
 				data.Data[coinId].Symbol,
-				data.Data[coinId].Quote[convertId].Price,
+				data.Data[coinId].Quote[convertId].Price.StringFixedBank(_pricePlaces),
 				data.Data[coinId].Quote[convertId].PercentChange24h,
 			)
 		}
