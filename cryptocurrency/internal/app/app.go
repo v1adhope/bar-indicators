@@ -80,7 +80,7 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 
 	client := httpclient.New()
 
-	data, err := httpclient.FetchData[coinmarketcap.Data](ctx, client, u.String(), headers)
+	data, err := client.FetchData[coinmarketcap.Data](ctx, u.String(), headers)
 	if err != nil {
 		return "", err
 	}

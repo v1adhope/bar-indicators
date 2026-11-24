@@ -18,7 +18,11 @@ const (
 	_reqTimeout  = 10 * time.Second
 )
 
-func New() *retryablehttp.Client {
+type Client struct {
+	*retryablehttp.Client
+}
+
+func New() *Client {
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelWarn,
 	}))
@@ -27,10 +31,10 @@ func New() *retryablehttp.Client {
 	client.ErrorHandler = retryablehttp.PassthroughErrorHandler
 	client.RetryMax = _reqAttempts
 	client.HTTPClient.Timeout = _reqTimeout
-	return client
+	return &Client{Client: client}
 }
 
-func FetchData[T any](ctx context.Context, client *retryablehttp.Client, url string, headers http.Header) (T, error) {
+func (c *Client) FetchData[T any](ctx context.Context, url string, headers http.Header) (T, error) {
 	var data T
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -54,7 +58,7 @@ func FetchData[T any](ctx context.Context, client *retryablehttp.Client, url str
 	}
 	req.SetResponseHandler(decodeResponse)
 
-	resp, err := client.Do(req)
+	resp, err := c.Do(req)
 	if resp != nil {
 		defer resp.Body.Close()
 	}

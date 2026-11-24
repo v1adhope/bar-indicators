@@ -76,7 +76,7 @@ func getWeather(ctx context.Context, city string) (string, error) {
 	}
 	client := httpclient.New()
 
-	data, err := httpclient.FetchData[wttr.Data](ctx, client, u.String(), nil)
+	data, err := client.FetchData[wttr.Data](ctx, u.String(), nil)
 	if err != nil {
 		return "", err
 	}
