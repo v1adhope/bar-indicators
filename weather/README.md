@@ -39,4 +39,4 @@ and exits.
 
 ## Preview
 
-![preview](/assets/preview.png)
+![Weather indicator and forecast tooltip in Waybar](./assets/preview.png)

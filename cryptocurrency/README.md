@@ -59,4 +59,4 @@ exits.
 
 ## Preview
 
-![preview](assets/preview.png)
+![Cryptocurrency indicator and price tooltip in Waybar](./assets/preview.png)
