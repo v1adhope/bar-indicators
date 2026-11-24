@@ -37,7 +37,7 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 	query.Add("id", rawCoinIds)
 	query.Add("convert_id", convertId)
 
-	req.Header.Set("Accepts", "application/json")
+	req.Header.Set("Accept", "application/json")
 	req.Header.Add("X-CMC_PRO_API_KEY", apiToken)
 	req.URL.RawQuery = query.Encode()
 
