@@ -31,7 +31,7 @@ func Run(ctx context.Context, city string) error {
 		fmt.Println(res)
 	}
 
-	db, err := database.Open(ctx, "waybar-weather-indicator/weather_history.sqlite3")
+	db, err := database.Open(ctx, "bar-indicators/weather_history.sqlite3")
 	if err != nil {
 		return errors.Join(fetchErr, err)
 	}

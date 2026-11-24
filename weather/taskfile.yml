@@ -17,5 +17,5 @@ tasks:
           /*) state_home="$XDG_STATE_HOME" ;;
           *) state_home="$HOME/.local/state" ;;
         esac
-        db="$state_home/waybar-weather-indicator/weather_history.sqlite3"
+        db="$state_home/bar-indicators/weather_history.sqlite3"
         rm -f -- "$db" "$db-wal" "$db-shm" "$db-journal"
