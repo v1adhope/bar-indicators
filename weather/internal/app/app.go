@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"log"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/v1adhope/bar-indicators/lib/httpclient"
+	"github.com/v1adhope/bar-indicators/lib/waybar"
 	"github.com/v1adhope/bar-indicators/weather/internal/database"
 	"github.com/v1adhope/bar-indicators/weather/internal/entity"
 	"github.com/v1adhope/bar-indicators/weather/internal/wttr"
@@ -81,7 +81,7 @@ func getWeather(ctx context.Context, city string) (string, error) {
 		return "", err
 	}
 
-	module := entity.Module{}
+	module := waybar.Module{}
 	module.Text = fmt.Sprintf(
 		"%s°(%s°)",
 		data.CurrentCondition[0].TempC,
@@ -142,11 +142,11 @@ func getWeather(ctx context.Context, city string) (string, error) {
 
 	module.Tooltip = buf.String()
 
-	json, err := json.Marshal(module)
+	res, err := module.Encode()
 	if err != nil {
-		return "", fmt.Errorf("marshal: %w", err)
+		return "", fmt.Errorf("waybar: %w", err)
 	}
-	return string(json), nil
+	return res, nil
 }
 
 func checkDescription(target string) string {

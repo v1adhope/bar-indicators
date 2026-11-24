@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"context"
-	"encoding/json/v2"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -13,8 +12,8 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/coinmarketcap"
-	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/entity"
 	"github.com/v1adhope/bar-indicators/lib/httpclient"
+	"github.com/v1adhope/bar-indicators/lib/waybar"
 )
 
 const _pricePlaces = 3
@@ -52,7 +51,7 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 		return "", err
 	}
 
-	module := entity.Module{}
+	module := waybar.Module{}
 	coinIds := strings.Split(rawCoinIds, ",")
 	for _, coinId := range coinIds {
 		if !data.Data[coinId].Quote[convertId].Price.IsPositive() {
@@ -97,10 +96,9 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 	module.Tooltip = strings.Replace(module.Tooltip, "Price", "<b>Price</b>", 1)
 	module.Tooltip = strings.Replace(module.Tooltip, "24h%", "<b>24h%</b>", 1)
 
-	json, err := json.Marshal(module)
+	res, err := module.Encode()
 	if err != nil {
-		return "", fmt.Errorf("marshal: %w", err)
+		return "", fmt.Errorf("waybar: %w", err)
 	}
-
-	return string(json), nil
+	return res, nil
 }
