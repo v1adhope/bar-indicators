@@ -7,25 +7,18 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
-	"io"
 	"log"
-	"log/slog"
-	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-retryablehttp"
+	"github.com/v1adhope/bar-indicators/lib/httpclient"
 	"github.com/v1adhope/bar-indicators/weather/internal/database"
 	"github.com/v1adhope/bar-indicators/weather/internal/entity"
 	"github.com/v1adhope/bar-indicators/weather/internal/wttr"
 )
 
 const (
-	_reqAttempts = 3
-	_reqTimeout  = 10 * time.Second
-
 	_timeModel12h = "03:04 PM"
 	_timeModel24h = "15:04"
 )
@@ -81,16 +74,9 @@ func getWeather(ctx context.Context, city string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("parse: %w", err)
 	}
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.LevelWarn,
-	}))
-	retryClient := retryablehttp.NewClient()
-	retryClient.Logger = logger
-	retryClient.ErrorHandler = retryablehttp.PassthroughErrorHandler
-	retryClient.RetryMax = _reqAttempts
-	retryClient.HTTPClient.Timeout = _reqTimeout
+	client := httpclient.New()
 
-	data, err := fetchWeatherData(ctx, retryClient, u.String())
+	data, err := httpclient.FetchData[wttr.Data](ctx, client, u.String(), nil)
 	if err != nil {
 		return "", err
 	}
@@ -161,45 +147,6 @@ func getWeather(ctx context.Context, city string) (string, error) {
 		return "", fmt.Errorf("marshal: %w", err)
 	}
 	return string(json), nil
-}
-
-func fetchWeatherData(ctx context.Context, client *retryablehttp.Client, url string) (wttr.Data, error) {
-	data := wttr.Data{}
-	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return data, fmt.Errorf("request: %w", err)
-	}
-
-	// A 200 OK response can still time out while reading its body.
-	// Decode inside the retry loop so body read errors trigger another attempt.
-	decodeResponse := func(resp *http.Response) error {
-		if resp.StatusCode != http.StatusOK {
-			return nil
-		}
-		next := wttr.Data{}
-		if err := json.UnmarshalRead(resp.Body, &next); err != nil {
-			return fmt.Errorf("decode: %w", err)
-		}
-		data = next
-		return nil
-	}
-	req.SetResponseHandler(decodeResponse)
-
-	resp, err := client.Do(req)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-	if resp != nil && resp.StatusCode != http.StatusOK {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return data, fmt.Errorf("get: unexpected status: %s; read body: %w", resp.Status, err)
-		}
-		return data, fmt.Errorf("get: unexpected status: %s; body: %s", resp.Status, body)
-	}
-	if err != nil {
-		return data, fmt.Errorf("get: %w", err)
-	}
-	return data, nil
 }
 
 func checkDescription(target string) string {

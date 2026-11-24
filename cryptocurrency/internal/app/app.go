@@ -5,27 +5,19 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
-	"io"
-	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"text/tabwriter"
 	"time"
 
-	"github.com/hashicorp/go-retryablehttp"
 	"github.com/shopspring/decimal"
 	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/coinmarketcap"
 	"github.com/v1adhope/bar-indicators/cryptocurrency/internal/entity"
+	"github.com/v1adhope/bar-indicators/lib/httpclient"
 )
 
-const (
-	_reqAttempts = 3
-	_reqTimeout  = 10 * time.Second
-
-	_pricePlaces = 3
-)
+const _pricePlaces = 3
 
 // Run fetches and prints cryptocurrency quotes in Waybar JSON format.
 func Run(ctx context.Context, apiToken, convertId, rawCoinIds string) error {
@@ -53,16 +45,9 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 	headers.Set("Accept", "application/json")
 	headers.Set("X-CMC_PRO_API_KEY", apiToken)
 
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.LevelWarn,
-	}))
-	retryClient := retryablehttp.NewClient()
-	retryClient.Logger = logger
-	retryClient.ErrorHandler = retryablehttp.PassthroughErrorHandler
-	retryClient.RetryMax = _reqAttempts
-	retryClient.HTTPClient.Timeout = _reqTimeout
+	client := httpclient.New()
 
-	data, err := fetchCryptocurrencyData(ctx, retryClient, u.String(), headers)
+	data, err := httpclient.FetchData[coinmarketcap.Data](ctx, client, u.String(), headers)
 	if err != nil {
 		return "", err
 	}
@@ -118,44 +103,4 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 	}
 
 	return string(json), nil
-}
-
-func fetchCryptocurrencyData(ctx context.Context, client *retryablehttp.Client, url string, headers http.Header) (coinmarketcap.Data, error) {
-	data := coinmarketcap.Data{}
-	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return data, fmt.Errorf("request: %w", err)
-	}
-
-	req.Header = headers.Clone()
-
-	// Decode inside the retry loop so body read errors trigger another attempt.
-	decodeResponse := func(resp *http.Response) error {
-		if resp.StatusCode != http.StatusOK {
-			return nil
-		}
-		next := coinmarketcap.Data{}
-		if err := json.UnmarshalRead(resp.Body, &next); err != nil {
-			return fmt.Errorf("decode: %w", err)
-		}
-		data = next
-		return nil
-	}
-	req.SetResponseHandler(decodeResponse)
-
-	resp, err := client.Do(req)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-	if resp != nil && resp.StatusCode != http.StatusOK {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return data, fmt.Errorf("get: unexpected status: %s; read body: %w", resp.Status, err)
-		}
-		return data, fmt.Errorf("get: unexpected status: %s; body: %s", resp.Status, body)
-	}
-	if err != nil {
-		return data, fmt.Errorf("get: %w", err)
-	}
-	return data, nil
 }
