@@ -3,7 +3,7 @@ module github.com/v1adhope/bar-indicators/weather
 go 1.27.4
 
 require (
-	github.com/hashicorp/go-retryablehttp v0.7.8
+	github.com/v1adhope/bar-indicators/lib v0.0.0-00010101000000-000000000000
 	modernc.org/sqlite v1.63.0
 )
 
@@ -11,6 +11,7 @@ require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
@@ -19,3 +20,5 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
+
+replace github.com/v1adhope/bar-indicators/lib => ../lib
