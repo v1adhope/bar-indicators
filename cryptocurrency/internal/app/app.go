@@ -24,7 +24,6 @@ import (
 
 const _pricePlaces = 3
 
-// Run fetches and prints cryptocurrency quotes, using saved results if the fetch fails.
 func Run(ctx context.Context, apiToken, convertId, rawCoinIds string) error {
 	res, fetchErr := getCryptocurrency(ctx, apiToken, convertId, rawCoinIds)
 	if fetchErr == nil {
@@ -65,7 +64,6 @@ func Run(ctx context.Context, apiToken, convertId, rawCoinIds string) error {
 	return db.Record(ctx, queries.Record, time.Now().UTC().Format(time.RFC3339), convertId, rawCoinIds, status.String(), res)
 }
 
-// getCryptocurrency returns the Waybar cryptocurrency JSON for the requested coins.
 func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds string) (string, error) {
 	u, err := url.Parse("https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest")
 	if err != nil {

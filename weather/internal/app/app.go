@@ -24,7 +24,6 @@ const (
 	_timeModel24h = "15:04"
 )
 
-// Run fetches and prints weather for city, using saved results if the fetch fails.
 func Run(ctx context.Context, city string) error {
 	res, fetchErr := getWeather(ctx, city)
 	if fetchErr == nil {
