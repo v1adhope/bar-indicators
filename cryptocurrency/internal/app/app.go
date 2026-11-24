@@ -76,21 +76,21 @@ func getCryptocurrency(ctx context.Context, apiToken, convertId, rawCoinIds stri
 
 	buf := bytes.Buffer{}
 
-	func() {
-		w := tabwriter.NewWriter(&buf, 0, 0, 1, ' ', tabwriter.AlignRight)
-		defer w.Flush()
+	w := tabwriter.NewWriter(&buf, 0, 0, 1, ' ', tabwriter.AlignRight)
 
-		fmt.Fprintf(w, "%-6s\t%s\t%s\t\n", "Ticker", "Price", "24h%")
+	fmt.Fprintf(w, "%-6s\t%s\t%s\t\n", "Ticker", "Price", "24h%")
 
-		for _, coinId := range coinIds[1:] {
-			fmt.Fprintf(w,
-				"%-6s\t%s\t%0.2f\t\n",
-				data.Data[coinId].Symbol,
-				data.Data[coinId].Quote[convertId].Price.StringFixedBank(_pricePlaces),
-				data.Data[coinId].Quote[convertId].PercentChange24h,
-			)
-		}
-	}()
+	for _, coinId := range coinIds[1:] {
+		fmt.Fprintf(w,
+			"%-6s\t%s\t%0.2f\t\n",
+			data.Data[coinId].Symbol,
+			data.Data[coinId].Quote[convertId].Price.StringFixedBank(_pricePlaces),
+			data.Data[coinId].Quote[convertId].PercentChange24h,
+		)
+	}
+	if err := w.Flush(); err != nil {
+		return "", fmt.Errorf("flush tooltip: %w", err)
+	}
 
 	t, err := time.Parse(time.RFC3339Nano, data.Status.Timestamp)
 	if err != nil {
