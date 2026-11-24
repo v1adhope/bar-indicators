@@ -2,10 +2,7 @@ module github.com/v1adhope/bar-indicators/weather
 
 go 1.27.4
 
-require (
-	github.com/v1adhope/bar-indicators/lib v0.0.0-00010101000000-000000000000
-	modernc.org/sqlite v1.63.0
-)
+require github.com/v1adhope/bar-indicators/lib v0.0.0-00010101000000-000000000000
 
 require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
@@ -19,6 +16,7 @@ require (
 	modernc.org/libc v1.80.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
+	modernc.org/sqlite v1.63.0 // indirect
 )
 
 replace github.com/v1adhope/bar-indicators/lib => ../lib

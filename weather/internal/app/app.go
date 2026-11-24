@@ -11,10 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/v1adhope/bar-indicators/lib/database"
 	"github.com/v1adhope/bar-indicators/lib/httpclient"
 	"github.com/v1adhope/bar-indicators/lib/waybar"
-	"github.com/v1adhope/bar-indicators/weather/internal/database"
 	"github.com/v1adhope/bar-indicators/weather/internal/entity"
+	"github.com/v1adhope/bar-indicators/weather/internal/queires"
 	"github.com/v1adhope/bar-indicators/weather/internal/wttr"
 )
 
@@ -30,14 +31,14 @@ func Run(ctx context.Context, city string) error {
 		fmt.Println(res)
 	}
 
-	db, err := database.Open(ctx)
+	db, err := database.Open(ctx, "waybar-weather-indicator/weather_history.sqlite3")
 	if err != nil {
 		return errors.Join(fetchErr, err)
 	}
 
 	defer db.Close()
 
-	if err := db.Init(ctx); err != nil {
+	if err := db.Init(ctx, queires.Schema); err != nil {
 		return errors.Join(fetchErr, err)
 	}
 
@@ -46,9 +47,9 @@ func Run(ctx context.Context, city string) error {
 	if fetchErr != nil {
 		status, res = entity.StatusError, fetchErr.Error()
 
-		fallback, err := db.GetLatestSuccess(ctx, city)
+		fallback, err := db.GetLatestSuccess(ctx, queires.GetLatestSuccess, city, entity.StatusSuccess.String())
 		if err != nil {
-			recordErr := db.Record(ctx, city, status, res)
+			recordErr := db.Record(ctx, queires.Record, time.Now().UTC().Format(time.RFC3339), city, status.String(), res)
 
 			if errors.Is(err, sql.ErrNoRows) {
 				return errors.Join(fetchErr, recordErr)
@@ -61,7 +62,7 @@ func Run(ctx context.Context, city string) error {
 		fmt.Println(strings.Replace(fallback, "Fallback not used", "Fallback used", 1))
 	}
 
-	return db.Record(ctx, city, status, res)
+	return db.Record(ctx, queires.Record, time.Now().UTC().Format(time.RFC3339), city, status.String(), res)
 }
 
 // getWeather returns the Waybar weather JSON for city.
